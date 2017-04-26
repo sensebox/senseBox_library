@@ -4,7 +4,7 @@ HDC100X HDC1(0,0);
 Ultrasonic Ultrasonic(3,4); //RX,TX Pins
 TSL45315 luxsensor = TSL45315(TSL45315_TIME_M4);
 VEML6070 uvsensor;
-
+RV8523 rtc;
 
 uint32_t lux;
 uint16_t uv;

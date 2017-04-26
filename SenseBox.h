@@ -53,11 +53,12 @@
 #define IT_1   0x1 // 1T
 #define IT_2   0x2 // 2T
 #define IT_4   0x3 // 4T
-
 // Referenzwert: 0,01 W/m^2 ist äquivalent zu 0.4 als UV-Index
-
 //----VEML6070 Stuff End--/
 
+//---RTC Stuff Begin-//
+#define RV8523_h
+//---RTC Stuff End--//
 //-----Ultraschall Distanz Sensor HC-S04----//
 class Ultrasonic
 {
@@ -79,6 +80,7 @@ class HDC100X{
 
 		uint8_t begin(uint8_t mode, uint8_t tempRes, uint8_t humiRes, bool heaterState);
 		uint8_t begin(uint8_t mode, uint8_t resulution, bool heaterState);
+		uint8_t begin(void);
 
 		void setAddr(bool addr0, bool addr1);
 		void setAddr(uint8_t address);
@@ -115,8 +117,9 @@ class HDC100X{
 class TSL45315 {
 public:
 	TSL45315(uint8_t resolution);
+	TSL45315(void);
 	boolean begin(void);
-	uint32_t readLux(void);
+	uint32_t getLux(void);
 	boolean powerDown(void);
 
 
@@ -138,5 +141,40 @@ private:
 float refVal = 0.4;
 
 };
+
+//----------------------rtc-------------------------------
+
+class RV8523
+{
+  public:
+    RV8523();
+
+    void begin(void);
+    void stop(void);
+    void get(uint8_t *sec, uint8_t *min, uint8_t *hour, uint8_t *day, uint8_t *month, uint16_t *year);
+    void get(int *sec, int *min, int *hour, int *day, int *month, int *year);
+    void set(uint8_t sec, uint8_t min, uint8_t hour, uint8_t day, uint8_t month, uint16_t year);
+    void set(int sec, int min, int hour, int day, int month, int year);
+    void set12HourMode(void);
+    void set24HourMode(void);
+    void batterySwitchOver(int on);
+    //new
+    //void	setTime(void);
+    uint16_t getYear(void);
+    uint8_t getMonth(void);
+    uint8_t getDay(void);
+    uint8_t getHour(void);
+    uint8_t getMin(void);
+    uint8_t getSec(void);
+    
+  private:
+    uint8_t bin2bcd(uint8_t val);
+    uint8_t bcd2bin(uint8_t val);
+};
+
+
+
+//----------------------rgb----------------------------
+//----------------------sd-------------------------------
 
 #endif
