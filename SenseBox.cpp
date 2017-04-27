@@ -47,8 +47,8 @@ long Ultrasonic::getDistance(void)
 //PUBLIC:
 
 HDC100X::HDC100X(){
-	ownAddr = HDC100X_DEFAULT_ADDR;
-	dataReadyPin = -1;
+	ownAddr = 0x43;
+	//dataReadyPin = -1;
 }
 //-----------------------------------------------------------------------
 HDC100X::HDC100X(uint8_t address){
