@@ -399,8 +399,6 @@ return uvValue*5;
 }
 
 //-----------------RTC BEGIN-------
-
-
 #define I2C_ADDR (0xD0>>1)
 
 
@@ -418,7 +416,7 @@ RV8523::RV8523(void)
 //-------------------- Public --------------------
 
 
-void RV8523::begin(void)
+void RV8523::start(void)
 {
   uint8_t val;
 
@@ -613,7 +611,51 @@ uint8_t RV8523::bcd2bin(uint8_t val)
 {
   return val - 6 * (val >> 4);
 }
-//--new
+
+
+//-----new----RTC---Functions
+/*
+void RV8523::begin(void)
+{
+	start();
+}
+// A convenient constructor for using "the compiler's time":
+void RV8523::setTime(const char* date, const char* time)
+{
+	
+char buffer1[12]; 
+strcpy(buffer1, date);
+  uint16_t year =  (buffer1[7] -48) * 1000;
+  year += (buffer1[8] -48) * 100;
+  year += (buffer1[9] -48) * 10;
+  year += (buffer1[10] -48);
+
+  uint8_t month;
+  switch (buffer1[0]) {
+        case 'J': month = (buffer1[1] == 'a') ? 1 : ((buffer1[2] == 'n') ? 6 : 7); break;
+        case 'F': month = 2; break;
+        case 'A': month = buffer1[2] == 'r' ? 4 : 8; break;
+        case 'M': month = buffer1[2] == 'r' ? 3 : 5; break;
+        case 'S': month = 9; break;
+        case 'O': month = 10; break;
+        case 'N': month = 11; break;
+        case 'D': month = 12; break;
+    }
+  
+  uint8_t day = (buffer1[4] -48) * 10;
+  day += (buffer1[5] -48);
+
+  char buffer2[9];
+  strcpy(buffer2, time);
+  uint8_t hour = (buffer2[0]-48)*10 + (buffer2[1]-48);
+  uint8_t min = (buffer2[3]-48)*10 + (buffer2[4]-48);
+  uint8_t sec = (buffer2[6]-48)*10 + (buffer2[7]-48);
+
+  set(sec,  min,  hour,  day,  month,  year);
+
+  return;
+}
+
 uint16_t RV8523::getYear(void)
 {
   Wire.beginTransmission(I2C_ADDR);
@@ -696,6 +738,7 @@ uint8_t RV8523::getSec(void)
 
   return sec;
 }
+*/
 //------bmp
 
 
