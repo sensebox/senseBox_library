@@ -614,7 +614,7 @@ uint8_t RV8523::bcd2bin(uint8_t val)
 
 
 //-----new----RTC---Functions
-/*
+
 void RV8523::begin(void)
 {
 	start();
@@ -663,9 +663,15 @@ uint16_t RV8523::getYear(void)
   Wire.endTransmission();
 
   Wire.requestFrom(I2C_ADDR, 7);
-  
-   uint16_t year  = bcd2bin(Wire.read()) + 2000;
+  uint8_t sec   = bcd2bin(Wire.read() & 0x7F);
+  uint8_t min   = bcd2bin(Wire.read() & 0x7F);
+  uint8_t hour  = bcd2bin(Wire.read() & 0x3F); //24 hour mode
+  uint8_t day   = bcd2bin(Wire.read() & 0x3F);
+           bcd2bin(Wire.read() & 0x07); //day of week
+  uint8_t month = bcd2bin(Wire.read() & 0x1F);
+  uint16_t year  = bcd2bin(Wire.read()) + 2000;
 
+  
   return year;
 }
 
@@ -676,8 +682,13 @@ uint8_t RV8523::getMonth(void)
   Wire.endTransmission();
 
   Wire.requestFrom(I2C_ADDR, 7);
-  
+  uint8_t sec   = bcd2bin(Wire.read() & 0x7F);
+  uint8_t min   = bcd2bin(Wire.read() & 0x7F);
+  uint8_t hour  = bcd2bin(Wire.read() & 0x3F); //24 hour mode
+  uint8_t day   = bcd2bin(Wire.read() & 0x3F);
+           bcd2bin(Wire.read() & 0x07); //day of week
   uint8_t month = bcd2bin(Wire.read() & 0x1F);
+  uint16_t year  = bcd2bin(Wire.read()) + 2000;
   
 
   return month;
@@ -690,8 +701,13 @@ uint8_t RV8523::getDay(void)
   Wire.endTransmission();
 
   Wire.requestFrom(I2C_ADDR, 7);
-  
-  uint8_t day = bcd2bin(Wire.read() & 0x3F);
+  uint8_t sec   = bcd2bin(Wire.read() & 0x7F);
+  uint8_t min   = bcd2bin(Wire.read() & 0x7F);
+  uint8_t hour  = bcd2bin(Wire.read() & 0x3F); //24 hour mode
+  uint8_t day   = bcd2bin(Wire.read() & 0x3F);
+           bcd2bin(Wire.read() & 0x07); //day of week
+  uint8_t month = bcd2bin(Wire.read() & 0x1F);
+  uint16_t year  = bcd2bin(Wire.read()) + 2000;
   
 
   return day;
@@ -704,8 +720,13 @@ uint8_t RV8523::getHour(void)
   Wire.endTransmission();
 
   Wire.requestFrom(I2C_ADDR, 7);
-  
-  uint8_t hour = bcd2bin(Wire.read() & 0x3F); //24 hour mode
+  uint8_t sec   = bcd2bin(Wire.read() & 0x7F);
+  uint8_t min   = bcd2bin(Wire.read() & 0x7F);
+  uint8_t hour  = bcd2bin(Wire.read() & 0x3F); //24 hour mode
+  uint8_t day   = bcd2bin(Wire.read() & 0x3F);
+           bcd2bin(Wire.read() & 0x07); //day of week
+  uint8_t month = bcd2bin(Wire.read() & 0x1F);
+  uint16_t year  = bcd2bin(Wire.read()) + 2000;
   
 
   return hour;
@@ -718,9 +739,13 @@ uint8_t RV8523::getMin(void)
   Wire.endTransmission();
 
   Wire.requestFrom(I2C_ADDR, 7);
-  
-  uint8_t min= bcd2bin(Wire.read() & 0x7F);
-  
+  uint8_t sec   = bcd2bin(Wire.read() & 0x7F);
+  uint8_t min   = bcd2bin(Wire.read() & 0x7F);
+  uint8_t hour  = bcd2bin(Wire.read() & 0x3F); //24 hour mode
+  uint8_t day   = bcd2bin(Wire.read() & 0x3F);
+           bcd2bin(Wire.read() & 0x07); //day of week
+  uint8_t month = bcd2bin(Wire.read() & 0x1F);
+  uint16_t year  = bcd2bin(Wire.read()) + 2000;
 
   return min;
 }
@@ -732,13 +757,18 @@ uint8_t RV8523::getSec(void)
   Wire.endTransmission();
 
   Wire.requestFrom(I2C_ADDR, 7);
-  
-  uint8_t sec = bcd2bin(Wire.read() & 0x7F);
+  uint8_t sec   = bcd2bin(Wire.read() & 0x7F);
+  uint8_t min   = bcd2bin(Wire.read() & 0x7F);
+  uint8_t hour  = bcd2bin(Wire.read() & 0x3F); //24 hour mode
+  uint8_t day   = bcd2bin(Wire.read() & 0x3F);
+           bcd2bin(Wire.read() & 0x07); //day of week
+  uint8_t month = bcd2bin(Wire.read() & 0x1F);
+  uint16_t year  = bcd2bin(Wire.read()) + 2000;
   
 
   return sec;
 }
-*/
+
 //------bmp
 
 

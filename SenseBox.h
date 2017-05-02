@@ -174,9 +174,9 @@ class RV8523
     void set24HourMode(void);
     void batterySwitchOver(int on);
 
-    /*
+    
     //new funtions
-    void start(void);
+    void begin(void);
     void setTime(const char* date, const char* time);
     uint16_t getYear(void);
     uint8_t getMonth(void);
@@ -184,7 +184,7 @@ class RV8523
     uint8_t getHour(void);
     uint8_t getMin(void);
     uint8_t getSec(void);
-    */
+    
     
   private:
     uint8_t bin2bcd(uint8_t val);
