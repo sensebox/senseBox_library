@@ -8,7 +8,7 @@
 #include <inttypes.h>
 #include "Wire.h"
 
-#include "Opensensemap.h"
+#include "lib/OpenSenseMap.h"
 
 //-----HDC100X Stuff begin----//
 #define HDC100X_DEFAULT_ADDR		0x40

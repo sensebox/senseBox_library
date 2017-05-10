@@ -2,17 +2,20 @@
 
 OpenSenseMap::OpenSenseMap()
 {
-   myIp = IPAddress(192, 168, 0, 155);
+  server = "ingress.opensemap.org";
+  myIp = IPAddress(192, 168, 0, 155);
 }
 
-OpenSenseMap::OpenSenseMap(String ipAddress)
+OpenSenseMap::OpenSenseMap(String serverDomain, String ipAddress)
 {
-   myIp = IPAddress::fromString(ipAddress);
+  server = serverDomain;
+  myIp = IPAddress();
+  myIp.fromString(ipAddress);
 }
 
-OpenSenseMap::begin()
+void OpenSenseMap::begin()
 {
-    //Serial.print("Starting ethernet connection...");
+  //Serial.print("Starting ethernet connection...");
 
   if (Ethernet.begin(mac) == 0) {
     //Serial.println("Failed to configure Ethernet using DHCP");
@@ -22,7 +25,7 @@ OpenSenseMap::begin()
   }
 }
 
-OpenSenseMap::loop()
+void OpenSenseMap::loop()
 {
   if (client.available()) {
     char c = client.read();
