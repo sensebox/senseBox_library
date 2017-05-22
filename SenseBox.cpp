@@ -186,6 +186,7 @@ bool HDC100X::battLow(void){
 //######-----------------------------------------------------------------------
 
 float HDC100X::getTemp(void){
+	getTemp();
 	// returns the a float number of the temperature in degrees Celsius
 	if(HDCmode == HDC100X_TEMP || HDCmode == HDC100X_TEMP_HUMI)
 		return ((float)getRawTemp()/65536.0*165.0-40.0);
