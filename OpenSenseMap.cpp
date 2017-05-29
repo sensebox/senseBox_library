@@ -1,14 +1,15 @@
 #include "OpenSenseMap.h"
 
-OpenSenseMap::OpenSenseMap()
-{
-  server = "ingress.opensemap.org";
-}
+OpenSenseMap::OpenSenseMap() { }
 
 OpenSenseMap::OpenSenseMap(bool enableLogging, const char* serverDomain)
 {
   enableLog = enableLogging;
   server = serverDomain;
+}
+
+void OpenSenseMap::beginEthernet() {
+  beginEthernet("192.168.1.123");
 }
 
 void OpenSenseMap::beginEthernet(const char* ipAddress)
