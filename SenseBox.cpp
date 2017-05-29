@@ -97,7 +97,9 @@ uint8_t HDC100X::begin(uint8_t mode, uint8_t resulution, bool heaterState){
 
 uint8_t HDC100X::begin(void){		
 	Wire.begin();
-	return writeConfigData((HDC100X_14BIT<<2)|(DISABLE<<5));
+	uint8_t config = writeConfigData((HDC100X_14BIT<<2)|(DISABLE<<5));
+	getTemp();
+	return config;
 }
 //######-----------------------------------------------------------------------
 
