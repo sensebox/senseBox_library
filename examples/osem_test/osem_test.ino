@@ -1,7 +1,7 @@
 #include "SenseBox.h"
 
 
-OpenSenseMap osem = OpenSenseMap(true, "192.168.2.100"); // log enabled, osem api domain
+OpenSenseMap osem = OpenSenseMap(true, "192.168.2.100", 80); // log enabled, osem api domain, osem api port
 
 void setup() {
   // put your setup code here, to run once:

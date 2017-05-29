@@ -2,10 +2,11 @@
 
 OpenSenseMap::OpenSenseMap() { }
 
-OpenSenseMap::OpenSenseMap(bool enableLogging, const char* serverDomain)
+OpenSenseMap::OpenSenseMap(bool enableLogging, const char* serverDomain, unsigned int serverPort)
 {
   enableLog = enableLogging;
   server = serverDomain;
+  port = serverPort;
 }
 
 void OpenSenseMap::beginEthernet() {
@@ -80,7 +81,7 @@ void OpenSenseMap::postFloatValue(float measurement, String sensorId, String box
 
   log("connecting...");
   log(server);
-  if (client->connect(server, 8000))
+  if (client->connect(server, port))
   {
     log("connected\n");
     String value = "{\"value\":";

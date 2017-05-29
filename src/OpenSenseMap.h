@@ -7,7 +7,7 @@ class OpenSenseMap {
 
 public:
   OpenSenseMap();
-  OpenSenseMap(bool enableLogging, const char* server);
+  OpenSenseMap(bool enableLogging, const char* server, unsigned int port);
   void beginEthernet();
   void beginEthernet(const char* ipAddress);
   void beginWiFi(char* ssid, char* passwd);
@@ -16,6 +16,7 @@ public:
 private:
   byte mac[6] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
   const char* server = "ingress.opensemap.org";
+  unsigned int port = 80;
   bool enableLog = false;
   Client* client = NULL;
   uint8_t wifistatus = WL_IDLE_STATUS;
