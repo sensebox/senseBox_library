@@ -11,10 +11,10 @@ uint16_t uv;
 
 void setup() {
   // put your setup code here, to run once:
-Serial.begin(9600);
-HDC1.begin(HDC100X_TEMP_HUMI,HDC100X_14BIT,HDC100X_14BIT,DISABLE);
-luxsensor.begin();
-uvsensor.begin();
+  Serial.begin(9600);
+  HDC1.begin(HDC100X_TEMP_HUMI,HDC100X_14BIT,HDC100X_14BIT,DISABLE);
+  luxsensor.begin();
+  uvsensor.begin();
 }
 
 void loop() {
@@ -22,12 +22,11 @@ void loop() {
   long distance = Ultrasonic.getDistance();
   Serial.println(distance);
   Serial.print(" Humidity: ");
-    Serial.print(HDC1.getHumi()); 
-    Serial.print("%, Temperature: ");     
-    Serial.print(HDC1.getTemp());
-    Serial.println("C");
+  Serial.print(HDC1.getHumi()); 
+  Serial.print("%, Temperature: ");     
+  Serial.print(HDC1.getTemp());
+  Serial.println("C");
 
-   lux = luxsensor.readLux();
-   uv = uvsensor.getUV();
-   
+  lux = luxsensor.getLux();
+  uv = uvsensor.getUV();
 }

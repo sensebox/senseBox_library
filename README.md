@@ -19,6 +19,7 @@ Include library with `#include <SenseBox.h>`. Before the setup routine define th
 - `TSL45315 luxsensor = TSL45315(TSL45315_TIME_M4);`
 - `VEML6070 uvsensor;`
 - `RV8523 rtc;`
+- `OpenSenseMap osem();` optional args: API domain & local IP
 
 In the `setup()`-Routine initialise the sensor with `classname.begin()`. For example `HDC1.begin()`.
 Now you can use `classname.getValue`. For example `HDC1.getTemp()`. See also the example folder.
