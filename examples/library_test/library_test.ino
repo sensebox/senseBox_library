@@ -5,8 +5,6 @@ Ultrasonic Ultrasonic(3,4); //RX,TX Pins
 TSL45315 luxsensor = TSL45315(TSL45315_TIME_M4);
 VEML6070 uvsensor;
 RV8523 rtc;
-// IP only used when DHCP not available
-OpenSenseMap osem = OpenSenseMap();
 
 uint32_t lux;
 uint16_t uv;
@@ -17,11 +15,9 @@ void setup() {
   HDC1.begin(HDC100X_TEMP_HUMI,HDC100X_14BIT,HDC100X_14BIT,DISABLE);
   luxsensor.begin();
   uvsensor.begin();
-  osem.beginWiFi("SSID", "PASSW");
 }
 
 void loop() {
-
   // put your main code here, to run repeatedly:
   long distance = Ultrasonic.getDistance();
   Serial.println(distance);
@@ -33,6 +29,4 @@ void loop() {
 
   lux = luxsensor.getLux();
   uv = uvsensor.getUV();
-   
-  osem.postFloatValue(24.3, "sensorID", "boxID");
 }
