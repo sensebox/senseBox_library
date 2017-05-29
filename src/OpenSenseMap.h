@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Ethernet.h>
-#include <WiFi101.h>
+#include "./Ethernet.h"
+#include "./WiFi101.h"
 
 class OpenSenseMap {
 
