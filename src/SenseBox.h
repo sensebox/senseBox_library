@@ -200,6 +200,13 @@ class HDC100X{
 //---------------HDC------END-------------------------//
 
 //-----Helligkeitssensor 45315----//
+/*************************************************** 
+  This is a library for the TSL45315 Lux sensor breakout board by Watterott
+  These sensors use I2C to communicate, 2 pins are required to interface
+
+  Written by Adi Dax/Makerblog.at  
+  BSD license, all text above must be included in any redistribution
+ ****************************************************/
 
 class TSL45315 {
 public:
@@ -217,7 +224,23 @@ private:
 //----------------------------------------//
 
 //------VEML6070 -------//
+/*
+Copyright (c) 2016, Embedded Adventures
+All rights reserved.
+Contact us at source [at] embeddedadventures.com
+www.embeddedadventures.com
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+- Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+- Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+- Neither the name of Embedded Adventures nor the names of its contributors
+  may be used to endorse or promote products derived from this software
+  without specific prior written permission.
 
+*/
 class VEML6070{
 public:
   boolean begin(void);
@@ -230,7 +253,10 @@ float refVal = 0.4;
 };
 
 //----------------------rtc-------------------------------
-
+/*
+  RV8523 RTC Lib for Arduino
+  by Watterott electronic (www.watterott.com)
+ */
 class RV8523
 {
   public:

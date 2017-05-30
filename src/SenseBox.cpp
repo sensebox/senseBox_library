@@ -267,6 +267,14 @@ void HDC100X::setRegister(uint8_t reg){
 
 
 //--------------------------------------------------------------------------------Helligkeitssensor 45315 begin------------------------//
+/*************************************************** 
+  This is a library for the TSL45315 Lux sensor breakout board by Watterott
+  These sensors use I2C to communicate, 2 pins are required to interface
+
+  Written by Adi Dax/Makerblog.at  
+  BSD license, all text above must be included in any redistribution
+ ****************************************************/
+
 TSL45315::TSL45315(uint8_t resolution)
 {
 	_resolution = resolution;
@@ -354,7 +362,22 @@ boolean TSL45315::powerDown(void)
 
 
 //-----VEML6070 UV Sensor begin ----///
-
+/*
+Copyright (c) 2016, Embedded Adventures
+All rights reserved.
+Contact us at source [at] embeddedadventures.com
+www.embeddedadventures.com
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+- Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+- Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+- Neither the name of Embedded Adventures nor the names of its contributors
+  may be used to endorse or promote products derived from this software
+  without specific prior written permission.
+*/
 boolean VEML6070::begin(void)
 {
 	Wire.begin();
@@ -384,6 +407,10 @@ return uvValue*5;
 }
 
 //-----------------RTC BEGIN-------
+/*
+  RV8523 RTC Lib for Arduino
+  by Watterott electronic (www.watterott.com)
+ */
 #define I2C_ADDR (0xD0>>1)
 
 
