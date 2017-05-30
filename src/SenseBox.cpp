@@ -44,11 +44,20 @@ long Ultrasonic::getDistance(void)
 
 //-----HDC100X Stuff begin----//
 
+/*
+This library was written for the Texas Instruments 
+HDC100X temperature and humidity sensor. 
+It has been tested for the HDC1000 and the HDC1008
+Buy the HDC1008 breakout board at: https://www.tindie.com/stores/RFgermany
+This library is made by Florian Roesner.
+Released under GNU GPL v2.0 license.
+
+*************************/ 
 //PUBLIC:
 
 HDC100X::HDC100X(){
-	ownAddr = 0x43;
-	//dataReadyPin = -1;
+	ownAddr = HDC100X_DEFAULT_ADDR;
+	dataReadyPin = -1;
 }
 //-----------------------------------------------------------------------
 HDC100X::HDC100X(uint8_t address){
@@ -64,7 +73,9 @@ HDC100X::HDC100X(bool addr0, bool addr1){
 
 //######-----------------------------------------------------------------------
 //######-----------------------------------------------------------------------
-
+uint8_t HDC100X::begin(){
+	HDC100X::begin(HDC100X_TEMP_HUMI,HDC100X_14BIT, HDC100X_14BIT, DISABLE);
+}
 uint8_t HDC100X::begin(uint8_t mode, uint8_t tempRes, uint8_t humiRes, bool heaterState){
 	/* sets the mode and resolution and the state of the heater element.  care must be taken, because it will change the temperature reading
 	** in:
@@ -95,12 +106,6 @@ uint8_t HDC100X::begin(uint8_t mode, uint8_t resulution, bool heaterState){
 	else 						return writeConfigData((resulution<<2)|(heaterState<<5));
 }
 
-uint8_t HDC100X::begin(void){		
-	Wire.begin();
-	uint8_t config = writeConfigData((HDC100X_14BIT<<2)|(DISABLE<<5));
-	getTemp();
-	return config;
-}
 //######-----------------------------------------------------------------------
 
 void HDC100X::setAddr(uint8_t address){
@@ -128,7 +133,6 @@ void HDC100X::setDrPin(int8_t pin){
 	dataReadyPin = pin;
 }
 
-//######-----------------------------------------------------------------------
 //######-----------------------------------------------------------------------
 
 uint8_t HDC100X::setMode(uint8_t mode, uint8_t tempRes, uint8_t humiRes){
@@ -160,11 +164,10 @@ uint8_t HDC100X::setMode(uint8_t mode, uint8_t resolution){
 }
 
 //######-----------------------------------------------------------------------
-//######-----------------------------------------------------------------------
 
 uint8_t HDC100X::setHeater(bool state){
 	/* turns on the heater to get rid of condensation. Care must be taken, because it will change the temperature reading
-	** in:
+	** in: 
 	** state: true/false
 	** out:
 	** high byte of the configuration register
@@ -175,16 +178,14 @@ uint8_t HDC100X::setHeater(bool state){
 }
 
 //######-----------------------------------------------------------------------
-//######-----------------------------------------------------------------------
 
 bool HDC100X::battLow(void){
 	// returns a false if input voltage is higher than 2.8V and if lower a true
-
+	
 	if(getConfigReg() & 0x08) return true;
 	return false;
 }
 
-//######-----------------------------------------------------------------------
 //######-----------------------------------------------------------------------
 
 float HDC100X::getTemp(void){
@@ -200,30 +201,23 @@ float HDC100X::getHumi(void){
 }
 
 //######-----------------------------------------------------------------------
-//######-----------------------------------------------------------------------
 
 uint16_t HDC100X::getRawTemp(void){
 	// returns the raw 16bit data of the temperature register
-	if(HDCmode == HDC100X_TEMP || HDCmode == HDC100X_TEMP_HUMI)
+	if(HDCmode == HDC100X_TEMP || HDCmode == HDC100X_TEMP_HUMI)	
 		return read2Byte(HDC100X_TEMP_REG);
 }
 //-----------------------------------------------------------------------
 uint16_t HDC100X::getRawHumi(void){
 	// returns the raw 16bit data of the humidity register
-	if(HDCmode == HDC100X_HUMI || HDCmode == HDC100X_TEMP_HUMI)
+	if(HDCmode == HDC100X_HUMI || HDCmode == HDC100X_TEMP_HUMI)	
 		return read2Byte(HDC100X_HUMI_REG);
 }
-
-//######-----------------------------------------------------------------------
-//######-----------------------------------------------------------------------
 
 uint8_t HDC100X::getConfigReg(void){
 	// returns the high byte of the configuration register
 	return (read2Byte(HDC100X_CONFIG_REG)>>8);
 }
-
-//######-----------------------------------------------------------------------
-//######-----------------------------------------------------------------------
 
 uint16_t HDC100X::read2Byte(uint8_t reg){
 	/* reads two bytes from the defined register
@@ -247,21 +241,16 @@ uint8_t HDC100X::writeConfigData(uint8_t config){
 	** in:
 	** config: one byte
 	** out:
-	** one byte 0:success  1:data too long to fit in transmit buffer    2:received NACK on transmit of address    3:received NACK on transmit of data    4:other error
+	** one byte 0:success  1:data too long to fit in transmit buffer    2:received NACK on transmit of address    3:received NACK on transmit of data    4:other error 
 	*/
 	Wire.beginTransmission(ownAddr);
 	Wire.write(HDC100X_CONFIG_REG);
-	Wire.write(config);
+	Wire.write(config); 
 	Wire.write(0x00); 					//the last 8 bits are always 0
 	return Wire.endTransmission();
 }
 
-//######-----------------------------------------------------------------------
-//######-----------------------------------------------------------------------
 //PRIVATE:
-//######-----------------------------------------------------------------------
-//######-----------------------------------------------------------------------
-
 void HDC100X::setRegister(uint8_t reg){
 	/* set the register for the next read or write cycle
 	** in:
@@ -274,16 +263,10 @@ void HDC100X::setRegister(uint8_t reg){
 	Wire.endTransmission();
 	delay(10);	// wait a little so that the sensor can set its register
 }
-//-----HDC100X Stuff End----//
+//------------------------------------------------------------------------------------------HDC100X Stuff End------------------------//
 
 
-//-----Helligkeitssensor 45315 begin----//
-
-/**************************************************************************/
-/*!
-		Constructor
-*/
-/**************************************************************************/
+//--------------------------------------------------------------------------------Helligkeitssensor 45315 begin------------------------//
 TSL45315::TSL45315(uint8_t resolution)
 {
 	_resolution = resolution;
