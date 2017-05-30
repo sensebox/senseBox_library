@@ -1,6 +1,7 @@
 #include "OpenSenseMap.h"
 
-OpenSenseMap::OpenSenseMap() { }
+OpenSenseMap::OpenSenseMap() { 
+}
 
 OpenSenseMap::OpenSenseMap(bool enableLogging, const char* serverDomain, unsigned int serverPort)
 {

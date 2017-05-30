@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include "Arduino.h"
 #include "SenseBox.h"
+#include <SPI.h>
 //RTC
 #if defined(__AVR__)
 # include <avr/io.h>
@@ -14,7 +15,6 @@
 #endif
 #include "Wire.h"
 #include <math.h>
-
 
 
 
@@ -771,368 +771,326 @@ uint8_t RV8523::getSec(void)
   return sec;
 }
 
-//------bmp
+/***************************************************************************
+  This is a library for the BMP280 pressure sensor
 
+  Designed specifically to work with the Adafruit BMP280 Breakout
+  ----> http://www.adafruit.com/products/2651
 
+  These sensors use I2C to communicate, 2 pins are required to interface.
+
+  Adafruit invests time and resources providing this open source code,
+  please support Adafruit andopen-source hardware by purchasing products
+  from Adafruit!
+
+  Written by Kevin Townsend for Adafruit Industries.
+  BSD license, all text above must be included in any redistribution
+ ***************************************************************************/
+
+/***************************************************************************
+ PRIVATE FUNCTIONS
+ ***************************************************************************/
 
 
 BMP280::BMP280()
-{
-	//do nothing
+  : _cs(-1), _mosi(-1), _miso(-1), _sck(-1)
+{ }
+
+BMP280::BMP280(int8_t cspin)
+  : _cs(cspin), _mosi(-1), _miso(-1), _sck(-1)
+{ }
+
+BMP280::BMP280(int8_t cspin, int8_t mosipin, int8_t misopin, int8_t sckpin)
+  : _cs(cspin), _mosi(mosipin), _miso(misopin), _sck(sckpin)
+{ }
+
+
+bool BMP280::begin(uint8_t a, uint8_t chipid) {
+  _i2caddr = a;
+
+  if (_cs == -1) {
+    // i2c
+    Wire.begin();
+  } else {
+    digitalWrite(_cs, HIGH);
+    pinMode(_cs, OUTPUT);
+
+    if (_sck == -1) {
+      // hardware SPI
+      SPI.begin();
+    } else {
+      // software SPI
+      pinMode(_sck, OUTPUT);
+      pinMode(_mosi, OUTPUT);
+      pinMode(_miso, INPUT);
+    }
+  }
+
+  if (read8(BMP280_REGISTER_CHIPID) != chipid)
+    return false;
+
+  readCoefficients();
+  write8(BMP280_REGISTER_CONTROL, 0x3F);
+  return true;
 }
-double BMP280::getPressure(void)
-{
-	setOversampling(4);
-	double uP,uT ;
-	char result = getUnPT(uP,uT);
-	if(result!=0){
-		// calculate the temperature
-		result = calcTemperature(uT,uT);
-		if(result){
-			// calculate the pressure
-			result = calcPressure(uP,uP);
-			if(result)return (1);
-			else error = 3 ;	// pressure error ;
-			return (0);
-		}else 
-			error = 2;	// temperature error ;
-	}
-	else 
-		error = 1;
-	
-	return (uP);
+
+uint8_t BMP280::spixfer(uint8_t x) {
+  if (_sck == -1)
+    return SPI.transfer(x);
+
+  // software spi
+  //Serial.println("Software SPI");
+  uint8_t reply = 0;
+  for (int i=7; i>=0; i--) {
+    reply <<= 1;
+    digitalWrite(_sck, LOW);
+    digitalWrite(_mosi, x & (1<<i));
+    digitalWrite(_sck, HIGH);
+    if (digitalRead(_miso))
+      reply |= 1;
+  }
+  return reply;
 }
-/*
-*	Initialize library and coefficient for measurements
+
+/**************************************************************************/
+/*!
+    @brief  Writes an 8 bit value over I2C/SPI
 */
-char BMP280::begin() 
+/**************************************************************************/
+void BMP280::write8(byte reg, byte value)
 {
-	
-	// Start up the Arduino's "wire" (I2C) library:
-	Wire.begin();
-
-	// The BMP280 includes factory calibration data stored on the device.
-	// Each device has different numbers, these must be retrieved and
-	// used in the calculations when taking measurements.
-
-	// Retrieve calibration data from device:
-	
-	if (    
-		readUInt(0x88, dig_T1) &&
-		readInt(0x8A, dig_T2)  &&
-		readInt(0x8C, dig_T3)  &&
-		readUInt(0x8E, dig_P1) &&
-		readInt(0x90, dig_P2)  &&
-		readInt(0x92, dig_P3)  &&
-		readInt(0x94, dig_P4)  &&
-		readInt(0x96, dig_P5)  &&
-		readInt(0x98, dig_P6)  &&
-		readInt(0x9A, dig_P7)  &&
-		readInt(0x9C, dig_P8)  &&
-		readInt(0x9E, dig_P9)){
-		/*
-		
-		*/
-		return (1);
-	}
-	else 
-		return (0);
+  if (_cs == -1) {
+    Wire.beginTransmission((uint8_t)_i2caddr);
+    Wire.write((uint8_t)reg);
+    Wire.write((uint8_t)value);
+    Wire.endTransmission();
+  } else {
+    if (_sck == -1)
+      SPI.beginTransaction(SPISettings(500000, MSBFIRST, SPI_MODE0));
+    digitalWrite(_cs, LOW);
+    spixfer(reg & ~0x80); // write, bit 7 low
+    spixfer(value);
+    digitalWrite(_cs, HIGH);
+    if (_sck == -1)
+      SPI.endTransaction();              // release the SPI bus
+  }
 }
 
-/*
-**	Read a signed integer (two bytes) from device
-**	@param : address = register to start reading (plus subsequent register)
-**	@param : value   = external variable to store data (function modifies value)
+/**************************************************************************/
+/*!
+    @brief  Reads an 8 bit value over I2C/SPI
 */
-char BMP280::readInt(char address, int &value)
-
+/**************************************************************************/
+uint8_t BMP280::read8(byte reg)
 {
-	unsigned char data[2];	//char is 4bit,1byte
+  uint8_t value;
 
-	data[0] = address;
-	if (readBytes(data,2))
-	{
-		value = (((int)data[1]<<8)|(int)data[0]);
-		return(1);
-	}
-	value = 0;
-	return(0);
+  if (_cs == -1) {
+    Wire.beginTransmission((uint8_t)_i2caddr);
+    Wire.write((uint8_t)reg);
+    Wire.endTransmission();
+    Wire.requestFrom((uint8_t)_i2caddr, (byte)1);
+    value = Wire.read();
+
+  } else {
+    if (_sck == -1)
+      SPI.beginTransaction(SPISettings(500000, MSBFIRST, SPI_MODE0));
+    digitalWrite(_cs, LOW);
+    spixfer(reg | 0x80); // read, bit 7 high
+    value = spixfer(0);
+    digitalWrite(_cs, HIGH);
+    if (_sck == -1)
+      SPI.endTransaction();              // release the SPI bus
+  }
+  return value;
 }
-/* 
-**	Read an unsigned integer (two bytes) from device
-**	@param : address = register to start reading (plus subsequent register)
-**	@param : value 	 = external variable to store data (function modifies value)
+
+/**************************************************************************/
+/*!
+    @brief  Reads a 16 bit value over I2C/SPI
 */
-
-char BMP280::readUInt(char address, unsigned int &value)
+/**************************************************************************/
+uint16_t BMP280::read16(byte reg)
 {
-	unsigned char data[2];	//4bit
-	data[0] = address;
-	if (readBytes(data,2))
-	{
-		value = (((unsigned int)data[1]<<8)|(unsigned int)data[0]);
-		return(1);
-	}
-	value = 0;
-	return(0);
+  uint16_t value;
+
+  if (_cs == -1) {
+    Wire.beginTransmission((uint8_t)_i2caddr);
+    Wire.write((uint8_t)reg);
+    Wire.endTransmission();
+    Wire.requestFrom((uint8_t)_i2caddr, (byte)2);
+    value = (Wire.read() << 8) | Wire.read();
+
+  } else {
+    if (_sck == -1)
+      SPI.beginTransaction(SPISettings(500000, MSBFIRST, SPI_MODE0));
+    digitalWrite(_cs, LOW);
+    spixfer(reg | 0x80); // read, bit 7 high
+    value = (spixfer(0) << 8) | spixfer(0);
+    digitalWrite(_cs, HIGH);
+    if (_sck == -1)
+      SPI.endTransaction();              // release the SPI bus
+  }
+
+  return value;
 }
-/*
-** Read an array of bytes from device
-** @param : value  = external array to hold data. Put starting register in values[0].
-** @param : length = number of bytes to read
+
+uint16_t BMP280::read16_LE(byte reg) {
+  uint16_t temp = read16(reg);
+  return (temp >> 8) | (temp << 8);
+
+}
+
+/**************************************************************************/
+/*!
+    @brief  Reads a signed 16 bit value over I2C/SPI
 */
-
-char BMP280::readBytes(unsigned char *values, char length)
+/**************************************************************************/
+int16_t BMP280::readS16(byte reg)
 {
-	char x;
+  return (int16_t)read16(reg);
 
-	Wire.beginTransmission(BMP280_ADDR);
-	Wire.write(values[0]);
-	error = Wire.endTransmission();
-	if (error == 0)
-	{
-		Wire.requestFrom(BMP280_ADDR,length);
-		while(Wire.available() != length) ; // wait until bytes are ready
-		for(x=0;x<length;x++)
-		{
-			values[x] = Wire.read();
-		}
-		return(1);
-	}
-	return(0);
 }
-/*
-** Write an array of bytes to device
-** @param : values = external array of data to write. Put starting register in values[0].
-** @param : length = number of bytes to write
+
+int16_t BMP280::readS16_LE(byte reg)
+{
+  return (int16_t)read16_LE(reg);
+
+}
+
+
+/**************************************************************************/
+/*!
+    @brief  Reads a 24 bit value over I2C/SPI
 */
-char BMP280::writeBytes(unsigned char *values, char length)
+/**************************************************************************/
+uint32_t BMP280::read24(byte reg)
 {
-	Wire.beginTransmission(BMP280_ADDR);
-	Wire.write(values,length);
-	error = Wire.endTransmission();
-	if (error == 0)
-		return(1);
-	else
-		return(0);
+  uint32_t value;
+
+  if (_cs == -1) {
+    Wire.beginTransmission((uint8_t)_i2caddr);
+    Wire.write((uint8_t)reg);
+    Wire.endTransmission();
+    Wire.requestFrom((uint8_t)_i2caddr, (byte)3);
+    
+    value = Wire.read();
+    value <<= 8;
+    value |= Wire.read();
+    value <<= 8;
+    value |= Wire.read();
+
+  } else {
+    if (_sck == -1)
+      SPI.beginTransaction(SPISettings(500000, MSBFIRST, SPI_MODE0));
+    digitalWrite(_cs, LOW);
+    spixfer(reg | 0x80); // read, bit 7 high
+    
+    value = spixfer(0);
+    value <<= 8;
+    value |= spixfer(0);
+    value <<= 8;
+    value |= spixfer(0);
+
+    digitalWrite(_cs, HIGH);
+    if (_sck == -1)
+      SPI.endTransaction();              // release the SPI bus
+  }
+
+  return value;
 }
 
-short BMP280::getOversampling(void)
-{
-	return oversampling;
-}
-
-char BMP280::setOversampling(short oss)
-{
-	oversampling = oss;
-	return (1);
-}
-/*
-**	Begin a measurement cycle.
-** Oversampling: 0 to 4, higher numbers are slower, higher-res outputs.
-** @returns : delay in ms to wait, or 0 if I2C error.
+/**************************************************************************/
+/*!
+    @brief  Reads the factory-set coefficients
 */
-char BMP280::startMeasurment(void)
-
+/**************************************************************************/
+void BMP280::readCoefficients(void)
 {
-	unsigned char data[2], result, delay;
-	
-	data[0] = BMP280_REG_CONTROL;
+    _bmp280_calib.dig_T1 = read16_LE(BMP280_REGISTER_DIG_T1);
+    _bmp280_calib.dig_T2 = readS16_LE(BMP280_REGISTER_DIG_T2);
+    _bmp280_calib.dig_T3 = readS16_LE(BMP280_REGISTER_DIG_T3);
 
-	switch (oversampling)
-	{
-		case 0:
-			data[1] = BMP280_COMMAND_PRESSURE0;     
-			oversampling_t = 1;
-			delay = 8;			
-		break;
-		case 1:
-			data[1] = BMP280_COMMAND_PRESSURE1;     
-			oversampling_t = 1;
-			delay = 10;			
-		break;
-		case 2:
-			data[1] = BMP280_COMMAND_PRESSURE2;		
-			oversampling_t = 1;
-			delay = 15;
-		break;
-		case 3:
-			data[1] = BMP280_COMMAND_PRESSURE3;
-			oversampling_t = 1;
-			delay = 24;
-		break;
-		case 4:
-			data[1] = BMP280_COMMAND_PRESSURE4;
-			oversampling_t = 1;
-			delay = 45;
-		break;
-		default:
-			data[1] = BMP280_COMMAND_PRESSURE0;
-			delay = 9;
-		break;
-	}
-	result = writeBytes(data, 2);
-	if (result) // good write?
-		return(delay); // return the delay in ms (rounded up) to wait before retrieving data
-	else
-		return(0); // or return 0 if there was a problem communicating with the BMP
+    _bmp280_calib.dig_P1 = read16_LE(BMP280_REGISTER_DIG_P1);
+    _bmp280_calib.dig_P2 = readS16_LE(BMP280_REGISTER_DIG_P2);
+    _bmp280_calib.dig_P3 = readS16_LE(BMP280_REGISTER_DIG_P3);
+    _bmp280_calib.dig_P4 = readS16_LE(BMP280_REGISTER_DIG_P4);
+    _bmp280_calib.dig_P5 = readS16_LE(BMP280_REGISTER_DIG_P5);
+    _bmp280_calib.dig_P6 = readS16_LE(BMP280_REGISTER_DIG_P6);
+    _bmp280_calib.dig_P7 = readS16_LE(BMP280_REGISTER_DIG_P7);
+    _bmp280_calib.dig_P8 = readS16_LE(BMP280_REGISTER_DIG_P8);
+    _bmp280_calib.dig_P9 = readS16_LE(BMP280_REGISTER_DIG_P9);
 }
 
-/*
-**	Get the uncalibrated pressure and temperature value.
-**  @param : uP = stores the uncalibrated pressure value.(20bit)
-**  @param : uT = stores the uncalibrated temperature value.(20bit)
+/**************************************************************************/
+/*!
+
 */
-char BMP280::getUnPT(double &uP, double &uT)
+/**************************************************************************/
+float BMP280::getTemperature(void)
 {
-	unsigned char data[6];
-	char result;
-	
-	data[0] = BMP280_REG_RESULT_PRESSURE; //0xF7 
+  int32_t var1, var2;
 
-	result = readBytes(data, 6); // 0xF7; xF8, 0xF9, 0xFA, 0xFB, 0xFC
-	if (result) // good read
-	{
-		double factor = pow(2, 4);
-		uP = (( (data[0] *256.0) + data[1] + (data[2]/256.0))) * factor ;	//20bit UP
-		uT = (( (data[3] *256.0) + data[4] + (data[5]/256.0))) * factor ;	//20bit UT
-		
-	}
-	return(result);
+  int32_t adc_T = read24(BMP280_REGISTER_TEMPDATA);
+  adc_T >>= 4;
+
+  var1  = ((((adc_T>>3) - ((int32_t)_bmp280_calib.dig_T1 <<1))) *
+	   ((int32_t)_bmp280_calib.dig_T2)) >> 11;
+
+  var2  = (((((adc_T>>4) - ((int32_t)_bmp280_calib.dig_T1)) *
+	     ((adc_T>>4) - ((int32_t)_bmp280_calib.dig_T1))) >> 12) *
+	   ((int32_t)_bmp280_calib.dig_T3)) >> 14;
+
+  t_fine = var1 + var2;
+
+  float T  = (t_fine * 5 + 128) >> 8;
+  return T/100;
 }
-/*
-** Retrieve temperature and pressure.
-** @param : T = stores the temperature value in degC.
-** @param : P = stores the pressure value in mBar.
+
+/**************************************************************************/
+/*!
+
 */
-char BMP280::getTemperatureAndPressure(double &T,double &P)
-{
-	double uP,uT ;
-	char result = getUnPT(uP,uT);
-	if(result!=0){
-		// calculate the temperature
-		result = calcTemperature(T,uT);
-		if(result){
-			// calculate the pressure
-			result = calcPressure(P,uP);
-			if(result)return (1);
-			else error = 3 ;	// pressure error ;
-			return (0);
-		}else 
-			error = 2;	// temperature error ;
-	}
-	else 
-		error = 1;
-	
-	return (0);
-}
-/*
-** temperature calculation
-** @param : T  = stores the temperature value after calculation.
-** @param : uT = the uncalibrated temperature value.
-*/
-char BMP280::calcTemperature(double &T, double &uT)
-//
-{
-	double adc_T = uT ;
-	//Serial.print("adc_T = "); Serial.println(adc_T,DEC);
-		
-	double var1 = (((double)adc_T)/16384.0-((double)dig_T1)/1024.0)*((double)dig_T2);
-	double var2 = ((((double)adc_T)/131072.0 - ((double)dig_T1)/8192.0)*(((double)adc_T)/131072.0 - ((double)dig_T1)/8192.0))*((double)dig_T3);
-	t_fine = (long signed int)(var1+var2);
-		
-	T = (var1+var2)/5120.0;
-	
-	if(T>100.0 || T <-100.0)return 0;
-	
-	return (1);
-}
-/*
-**	Pressure calculation from uncalibrated pressure value.
-**  @param : P  = stores the pressure value.
-**  @param : uP = uncalibrated pressure value. 
-*/
-char BMP280::calcPressure(double &P,double uP)
-{
-	//char result;
-	double var1 , var2 ;
-	
-	var1 = ((double)t_fine/2.0) - 64000.0;
-	//Serial.print("var1 = ");Serial.println(var1,2);
-	var2 = var1 * (var1 * ((double)dig_P6)/32768.0);	//not overflow
-	//Serial.print("var2 = ");Serial.println(var2,2);
-	var2 = var2 + (var1 * ((double)dig_P5)*2.0);	//overflow
-	//Serial.print("var2 = ");Serial.println(var2,2);
-		
-	var2 = (var2/4.0)+(((double)dig_P4)*65536.0);
-	//Serial.print("var2 = ");Serial.println(var2,2);
-		
-	var1 = (((double)dig_P3) * var1 * var1/524288.0 + ((double)dig_P2) * var1) / 524288.0;
-	//Serial.print("var1 = ");Serial.println(var1,2);
-		
-		
-	//Serial.print("(32768.0 + var1) = ");Serial.println((32768.0 + var1),5);
-		
-	double t_var = (32768.0 + var1)/32768.0;
-	//Serial.print("((32768.0 + var1)/32768.0) = "); Serial.println(t_var,5);
-	//Serial.print("dig_P1 = ");Serial.println(dig_P1);
-	//Serial.print("dig_P1 = ");Serial.println((double)dig_P1,5);
-	double tt_var = t_var * (double)dig_P1;
-		
-	//Serial.print("mulipication = "); Serial.println(tt_var,5);
-	
-	var1 = ((32768.0 + var1)/32768.0)*((double)dig_P1);
-	//Serial.print("var1 = ");Serial.println(var1,2);
-		
-	double p = 1048576.0- (double)uP;
-	//Serial.print("p = ");Serial.println(p,2);
-		
-	p = (p-(var2/4096.0))*6250.0/var1 ;	//overflow
-	//Serial.print("p = ");Serial.println(p,2);	
-		
-	var1 = ((double)dig_P9)*p*p/2147483648.0;	//overflow
-		
-	var2 = p*((double)dig_P8)/32768.0;
-	//Serial.print("var1 = ");Serial.println(var1,2);
-	p = p + (var1+var2+((double)dig_P7))/16.0;
-	//Serial.print("p = ");Serial.println(p,2);
-		
-	P = p/100.0 ;
-	
-	if(P>1200.0 || P < 800.0)return (0);
-	return (1);
+/**************************************************************************/
+float BMP280::getPressure(void) {
+  int64_t var1, var2, p;
+
+  // Must be done first to get the t_fine variable set up
+  getTemperature();
+
+  int32_t adc_P = read24(BMP280_REGISTER_PRESSUREDATA);
+  adc_P >>= 4;
+
+  var1 = ((int64_t)t_fine) - 128000;
+  var2 = var1 * var1 * (int64_t)_bmp280_calib.dig_P6;
+  var2 = var2 + ((var1*(int64_t)_bmp280_calib.dig_P5)<<17);
+  var2 = var2 + (((int64_t)_bmp280_calib.dig_P4)<<35);
+  var1 = ((var1 * var1 * (int64_t)_bmp280_calib.dig_P3)>>8) +
+    ((var1 * (int64_t)_bmp280_calib.dig_P2)<<12);
+  var1 = (((((int64_t)1)<<47)+var1))*((int64_t)_bmp280_calib.dig_P1)>>33;
+
+  if (var1 == 0) {
+    return 0;  // avoid exception caused by division by zero
+  }
+  p = 1048576 - adc_P;
+  p = (((p<<31) - var2)*3125) / var1;
+  var1 = (((int64_t)_bmp280_calib.dig_P9) * (p>>13) * (p>>13)) >> 25;
+  var2 = (((int64_t)_bmp280_calib.dig_P8) * p) >> 19;
+
+  p = ((p + var1 + var2) >> 8) + (((int64_t)_bmp280_calib.dig_P7)<<4);
+  return (float)p/256;
 }
 
+float BMP280::getAltitude(float seaLevelhPa) {
+  float altitude;
 
+  float pressure = getPressure(); // in Si units for Pascal
+  pressure /= 100;
 
+  altitude = 44330 * (1.0 - pow(pressure / seaLevelhPa, 0.1903));
 
-double BMP280::sealevel(double P, double A)
-// Given a pressure P (mb) taken at a specific altitude (meters),
-// return the equivalent pressure (mb) at sea level.
-// This produces pressure readings that can be used for weather measurements.
-{
-	return(P/pow(1-(A/44330.0),5.255));
+  return altitude;
 }
 
-
-double BMP280::altitude(double P, double P0)
-// Given a pressure measurement P (mb) and the pressure at a baseline P0 (mb),
-// return altitude (meters) above baseline.
-{
-	return(44330.0*(1-pow(P/P0,1/5.255)));
-}
-
-
-char BMP280::getError(void)
-	// If any library command fails, you can retrieve an extended
-	// error code using this command. Errors are from the wire library: 
-	// 0 = Success
-	// 1 = Data too long to fit in transmit buffer
-	// 2 = Received NACK on transmit of address
-	// 3 = Received NACK on transmit of data
-	// 4 = Other error
-{
-	return(error);
-}
 
 
