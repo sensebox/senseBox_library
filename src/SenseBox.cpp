@@ -45,14 +45,14 @@ long Ultrasonic::getDistance(void)
 //-----HDC100X Stuff begin----//
 
 /*
-This library was written for the Texas Instruments 
-HDC100X temperature and humidity sensor. 
+This library was written for the Texas Instruments
+HDC100X temperature and humidity sensor.
 It has been tested for the HDC1000 and the HDC1008
 Buy the HDC1008 breakout board at: https://www.tindie.com/stores/RFgermany
 This library is made by Florian Roesner.
 Released under GNU GPL v2.0 license.
 
-*************************/ 
+*************************/
 //PUBLIC:
 
 HDC100X::HDC100X(){
@@ -167,7 +167,7 @@ uint8_t HDC100X::setMode(uint8_t mode, uint8_t resolution){
 
 uint8_t HDC100X::setHeater(bool state){
 	/* turns on the heater to get rid of condensation. Care must be taken, because it will change the temperature reading
-	** in: 
+	** in:
 	** state: true/false
 	** out:
 	** high byte of the configuration register
@@ -181,7 +181,7 @@ uint8_t HDC100X::setHeater(bool state){
 
 bool HDC100X::battLow(void){
 	// returns a false if input voltage is higher than 2.8V and if lower a true
-	
+
 	if(getConfigReg() & 0x08) return true;
 	return false;
 }
@@ -204,13 +204,13 @@ float HDC100X::getHumi(void){
 
 uint16_t HDC100X::getRawTemp(void){
 	// returns the raw 16bit data of the temperature register
-	if(HDCmode == HDC100X_TEMP || HDCmode == HDC100X_TEMP_HUMI)	
+	if(HDCmode == HDC100X_TEMP || HDCmode == HDC100X_TEMP_HUMI)
 		return read2Byte(HDC100X_TEMP_REG);
 }
 //-----------------------------------------------------------------------
 uint16_t HDC100X::getRawHumi(void){
 	// returns the raw 16bit data of the humidity register
-	if(HDCmode == HDC100X_HUMI || HDCmode == HDC100X_TEMP_HUMI)	
+	if(HDCmode == HDC100X_HUMI || HDCmode == HDC100X_TEMP_HUMI)
 		return read2Byte(HDC100X_HUMI_REG);
 }
 
@@ -241,11 +241,11 @@ uint8_t HDC100X::writeConfigData(uint8_t config){
 	** in:
 	** config: one byte
 	** out:
-	** one byte 0:success  1:data too long to fit in transmit buffer    2:received NACK on transmit of address    3:received NACK on transmit of data    4:other error 
+	** one byte 0:success  1:data too long to fit in transmit buffer    2:received NACK on transmit of address    3:received NACK on transmit of data    4:other error
 	*/
 	Wire.beginTransmission(ownAddr);
 	Wire.write(HDC100X_CONFIG_REG);
-	Wire.write(config); 
+	Wire.write(config);
 	Wire.write(0x00); 					//the last 8 bits are always 0
 	return Wire.endTransmission();
 }
@@ -267,11 +267,11 @@ void HDC100X::setRegister(uint8_t reg){
 
 
 //--------------------------------------------------------------------------------Helligkeitssensor 45315 begin------------------------//
-/*************************************************** 
+/***************************************************
   This is a library for the TSL45315 Lux sensor breakout board by Watterott
   These sensors use I2C to communicate, 2 pins are required to interface
 
-  Written by Adi Dax/Makerblog.at  
+  Written by Adi Dax/Makerblog.at
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
@@ -291,8 +291,8 @@ TSL45315::TSL45315(uint8_t resolution)
 }
 
 TSL45315::TSL45315(void)
-{	
-	_timerfactor = 4;	
+{
+	_timerfactor = 4;
 }
 
 
@@ -334,19 +334,19 @@ uint32_t TSL45315::getLux(void)
 {
 	uint32_t lux;
 
-		Wire.beginTransmission(TSL45315_I2C_ADDR);
-		Wire.write(0x80|TSL45315_REG_DATALOW);
-		Wire.endTransmission();
-		Wire.requestFrom(TSL45315_I2C_ADDR, 2);
-		_low = Wire.read();
-		_high = Wire.read();
-		while(Wire.available()){
-			Wire.read();
-		}
+     Wire.beginTransmission(TSL45315_I2C_ADDR);
+     Wire.write(0x80|TSL45315_REG_DATALOW);
+     Wire.endTransmission();
+     Wire.requestFrom(TSL45315_I2C_ADDR, 2);
+     _low = Wire.read();
+     _high = Wire.read();
+     while(Wire.available()){
+       Wire.read();
+     }
 
-		lux  = (_high<<8) | _low;
-	lux = lux * _timerfactor;
-	return lux;
+     lux  = (_high<<8) | _low;
+	 lux = lux * _timerfactor;
+return lux;
 }
 
 
@@ -517,7 +517,7 @@ void RV8523::set24HourMode(void) //set 24 hour mode
 
 
 void RV8523::batterySwitchOver(int on) //activate/deactivate battery switch over mode
-{   
+{
   uint8_t val;
 
   Wire.beginTransmission(I2C_ADDR);
@@ -634,8 +634,8 @@ void RV8523::begin(void)
 // A convenient constructor for using "the compiler's time":
 void RV8523::setTime(const char* date, const char* time)
 {
-	
-char buffer1[12]; 
+
+char buffer1[12];
 strcpy(buffer1, date);
   uint16_t year =  (buffer1[7] -48) * 1000;
   year += (buffer1[8] -48) * 100;
@@ -653,7 +653,7 @@ strcpy(buffer1, date);
         case 'N': month = 11; break;
         case 'D': month = 12; break;
     }
-  
+
   uint8_t day = (buffer1[4] -48) * 10;
   day += (buffer1[5] -48);
 
@@ -683,7 +683,7 @@ uint16_t RV8523::getYear(void)
   uint8_t month = bcd2bin(Wire.read() & 0x1F);
   uint16_t year  = bcd2bin(Wire.read()) + 2000;
 
-  
+
   return year;
 }
 
@@ -701,7 +701,7 @@ uint8_t RV8523::getMonth(void)
            bcd2bin(Wire.read() & 0x07); //day of week
   uint8_t month = bcd2bin(Wire.read() & 0x1F);
   uint16_t year  = bcd2bin(Wire.read()) + 2000;
-  
+
 
   return month;
 }
@@ -720,7 +720,7 @@ uint8_t RV8523::getDay(void)
            bcd2bin(Wire.read() & 0x07); //day of week
   uint8_t month = bcd2bin(Wire.read() & 0x1F);
   uint16_t year  = bcd2bin(Wire.read()) + 2000;
-  
+
 
   return day;
 }
@@ -739,7 +739,7 @@ uint8_t RV8523::getHour(void)
            bcd2bin(Wire.read() & 0x07); //day of week
   uint8_t month = bcd2bin(Wire.read() & 0x1F);
   uint16_t year  = bcd2bin(Wire.read()) + 2000;
-  
+
 
   return hour;
 }
@@ -776,7 +776,7 @@ uint8_t RV8523::getSec(void)
            bcd2bin(Wire.read() & 0x07); //day of week
   uint8_t month = bcd2bin(Wire.read() & 0x1F);
   uint16_t year  = bcd2bin(Wire.read()) + 2000;
-  
+
 
   return sec;
 }
@@ -991,7 +991,7 @@ uint32_t BMP280::read24(byte reg)
     Wire.write((uint8_t)reg);
     Wire.endTransmission();
     Wire.requestFrom((uint8_t)_i2caddr, (byte)3);
-    
+
     value = Wire.read();
     value <<= 8;
     value |= Wire.read();
@@ -1003,7 +1003,7 @@ uint32_t BMP280::read24(byte reg)
       SPI.beginTransaction(SPISettings(500000, MSBFIRST, SPI_MODE0));
     digitalWrite(_cs, LOW);
     spixfer(reg | 0x80); // read, bit 7 high
-    
+
     value = spixfer(0);
     value <<= 8;
     value |= spixfer(0);
@@ -1109,6 +1109,3 @@ float BMP280::getAltitude(float seaLevelhPa) {
 
   return altitude;
 }
-
-
-
