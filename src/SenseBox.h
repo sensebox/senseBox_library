@@ -77,7 +77,8 @@ Released under GNU GPL v2.0 license.
 //	=========================================================================
     //I2C ADDRESS/BITS/SETTINGS
     
-    #define BMP280_ADDRESS                (0x77)
+    #define BMP280_ADDRESS                (0x76)
+	#define BMP280_ADDRESS_B              (0x77)
     #define BMP280_CHIPID                 (0x58)
 	#define BMP_SCK 13
 	#define BMP_MISO 12
@@ -318,7 +319,8 @@ class BMP280
     BMP280(int8_t cspin);
     BMP280(int8_t cspin, int8_t mosipin, int8_t misopin, int8_t sckpin);
 
-    bool  begin(uint8_t addr = BMP280_ADDRESS, uint8_t chipid = BMP280_CHIPID);
+   
+    bool  begin(uint8_t addr = BMP280_ADDRESS, uint8_t addr_b = BMP280_ADDRESS_B, uint8_t chipid = BMP280_CHIPID);
     float getTemperature(void);
     float getPressure(void);
     float getAltitude(float seaLevelhPa = 1013.25);

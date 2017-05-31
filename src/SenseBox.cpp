@@ -815,8 +815,16 @@ BMP280::BMP280(int8_t cspin, int8_t mosipin, int8_t misopin, int8_t sckpin)
 { }
 
 
-bool BMP280::begin(uint8_t a, uint8_t chipid) {
-  _i2caddr = a;
+bool BMP280::begin(uint8_t a, uint8_t  b, uint8_t chipid) {
+   Wire.beginTransmission(118);
+   int error = Wire.endTransmission();
+   if (error == 0)
+   {
+      _i2caddr = a;
+
+   }else{
+   	_i2caddr = b;
+   }
 
   if (_cs == -1) {
     // i2c
