@@ -1,10 +1,12 @@
 #include "OpenSenseMap.h"
 
-OpenSenseMap::OpenSenseMap() { 
+OpenSenseMap::OpenSenseMap(const char* boxID) {
+  boxId = boxID;
 }
 
-OpenSenseMap::OpenSenseMap(bool enableLogging, const char* serverDomain, unsigned int serverPort)
+OpenSenseMap::OpenSenseMap(const char* boxID, bool enableLogging, const char* serverDomain, unsigned int serverPort)
 {
+  boxId = boxID;
   enableLog = enableLogging;
   server = serverDomain;
   port = serverPort;
@@ -57,38 +59,66 @@ void OpenSenseMap::beginWiFi(char* ssid, char* pass)
     log(ssid);
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network
     wifistatus = WiFi.begin(ssid, pass);
-    // wait 60 seconds for connection:
-    log("\n\n\n");
-    log("Waiting 3 seconds for connection...");
-    delay(3000);
+    // wait 5 seconds for connection:
+    log("\n\n");
+    log("Waiting 5 seconds for connection...");
+    delay(5000);
     log("done.\n");
   }
 
 }
 
-void OpenSenseMap::postFloatValue(float measurement, String sensorId, String boxId)
+void OpenSenseMap::uploadValue(int measurement, const char* sensorId)
+{
+  char obs[10];
+  dtostrf((float)measurement, 5, 0, obs);
+  return postToOsem(obs, sensorId);
+}
+
+void OpenSenseMap::uploadValue(float measurement, const char* sensorId)
 {
   char obs[10];
   dtostrf(measurement, 5, 2, obs);
-  log(obs);
+  return postToOsem(obs, sensorId);
+}
+
+void OpenSenseMap::postToOsem(char* obs, const char* sensorId)
+{
   //json must look like: {"value":"12.5"}
   //post observation to: /boxes/boxId/sensorId
-
-  Serial.println("__________________________\n");
   if (client->connected()) {
+    client->flush();
     client->stop();
     delay(1000);
   }
 
-  log("connecting...");
+  log("connecting... ");
   log(server);
   if (client->connect(server, port))
   {
-    log("connected\n");
+    log("  connected\n");
     String value = "{\"value\":";
     value += obs;
     value += "}";
-    // Make a HTTP Post request:
+    //
+    // log the request that we are about to make
+    log("POST /boxes/");
+    log(boxId);
+    log("/");
+    log(sensorId);
+    log(" HTTP/1.1\n");
+    log("Host:");
+    log(server);
+    log("\nContent-Type: application/json\n");
+    log("Connection: close\n");
+    log("Content-Length: ");
+    log(value.length());
+    log("\n\n");
+    // Send the data
+    log(value);
+    log('\n');
+
+    // make a HTTP POST request
     client->print("POST /boxes/");
     client->print(boxId);
     client->print("/");
@@ -105,8 +135,8 @@ void OpenSenseMap::postFloatValue(float measurement, String sensorId, String box
     // Send the data
     client->print(value);
     client->println();
+    waitForResponse();
   }
-  waitForResponse();
 }
 
 void OpenSenseMap::waitForResponse()
@@ -125,8 +155,9 @@ void OpenSenseMap::waitForResponse()
   }
   while (repeat);
 
-  log("Server Response: ");
-  Serial.println(response);
+  log("\nServer Response: ");
+  log(response);
+  log('\n');
 
   client->flush();
   client->stop();
@@ -141,6 +172,14 @@ bool OpenSenseMap::log(const char data)
 }
 
 bool OpenSenseMap::log(const char* data)
+{
+  if (!enableLog || !Serial) return false;
+
+  Serial.print(data);
+  return true;
+}
+
+bool OpenSenseMap::log(String data)
 {
   if (!enableLog || !Serial) return false;
 

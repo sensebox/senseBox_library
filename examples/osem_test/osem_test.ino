@@ -1,7 +1,6 @@
 #include "SenseBox.h"
 
-
-OpenSenseMap osem = OpenSenseMap(true, "192.168.2.100", 80); // log enabled, osem api domain, osem api port
+OpenSenseMap osem = OpenSenseMap("boxID", true, "ingress.opensensemap.org", 80); // boxID, log enabled, osem api domain, osem api port
 
 void setup() {
   // put your setup code here, to run once:
@@ -16,5 +15,5 @@ void setup() {
 
 void loop() {
   delay(3000);   
-  osem.postFloatValue(24.3, "sensorID", "boxID");
+  osem.uploadValue(24.3f, "sensorID");
 }
