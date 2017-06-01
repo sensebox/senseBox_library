@@ -316,10 +316,6 @@ class BMP280
 {
   public:
     BMP280();
-    BMP280(int8_t cspin);
-    BMP280(int8_t cspin, int8_t mosipin, int8_t misopin, int8_t sckpin);
-
-
     bool  begin(uint8_t addr = BMP280_ADDRESS, uint8_t addr_b = BMP280_ADDRESS_B, uint8_t chipid = BMP280_CHIPID);
     float getTemperature(void);
     float getPressure(void);
