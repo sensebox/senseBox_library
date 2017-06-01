@@ -16,7 +16,7 @@ public:
 
 private:
   byte mac[6] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-  const char* server = "ingress.opensemap.org";
+  const char* server = "ingress.opensensemap.org";
   const char* boxId = "";
   unsigned int port = 80;
   bool enableLog = true;
@@ -29,4 +29,3 @@ private:
   bool log(const char* data);
   bool log(String data);
 };
-

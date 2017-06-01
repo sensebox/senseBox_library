@@ -330,7 +330,7 @@ boolean TSL45315::begin(void)
 }
 
 
-uint32_t TSL45315::getLux(void)
+int TSL45315::getLux(void)
 {
 	uint32_t lux;
 
@@ -345,8 +345,8 @@ uint32_t TSL45315::getLux(void)
      }
 
      lux  = (_high<<8) | _low;
-	 lux = lux * _timerfactor;
-return lux;
+	 int lux_ = (int) lux * _timerfactor;
+ return  lux_;
 }
 
 
@@ -388,7 +388,7 @@ boolean VEML6070::begin(void)
  delay(500);
 }
 
-uint16_t VEML6070::getUV(void)
+int VEML6070::getUV(void)
 {
 	byte msb=0, lsb=0;
 uint16_t uvValue;
@@ -403,7 +403,7 @@ if(Wire.available()) lsb = Wire.read();
 
 uvValue = (msb<<8) | lsb;
 
-return uvValue*5;
+return (int) uvValue*5;
 }
 
 //-----------------RTC BEGIN-------

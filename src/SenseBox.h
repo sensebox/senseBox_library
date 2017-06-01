@@ -12,8 +12,8 @@
 
 //----------------------------------------------------------------------HDC100X Stuff begin----//
 /*
-This library was written for the Texas Instruments 
-HDC100X temperature and humidity sensor. 
+This library was written for the Texas Instruments
+HDC100X temperature and humidity sensor.
 It has been tested for the HDC1000 and the HDC1008
 Buy the HDC1008 breakout board at: https://www.tindie.com/stores/RFgermany
 This library is made by Florian Roesner.
@@ -76,13 +76,13 @@ Released under GNU GPL v2.0 license.
 
 //	=========================================================================
     //I2C ADDRESS/BITS/SETTINGS
-    
+
     #define BMP280_ADDRESS                (0x76)
 	#define BMP280_ADDRESS_B              (0x77)
     #define BMP280_CHIPID                 (0x58)
 	#define BMP_SCK 13
 	#define BMP_MISO 12
-	#define BMP_MOSI 11 
+	#define BMP_MOSI 11
 	#define BMP_CS 10
 
 /*=========================================================================
@@ -161,11 +161,11 @@ class Ultrasonic
 
 //-----Temperatur und Luftfeuchtigkeit Sensor HDC100X----//
 class HDC100X{
-	public: 
+	public:
 		HDC100X();
 		HDC100X(uint8_t address);
 		HDC100X(bool addr0, bool addr1);
-		
+
 		uint8_t begin(void);
 		uint8_t begin(uint8_t mode, uint8_t tempRes, uint8_t humiRes, bool heaterState);
 		uint8_t begin(uint8_t mode, uint8_t resulution, bool heaterState);
@@ -176,21 +176,21 @@ class HDC100X{
 
 		uint8_t setMode(uint8_t mode, uint8_t tempRes, uint8_t humiRes);
 		uint8_t setMode(uint8_t mode, uint8_t resolution);
-		
+
 		uint8_t setHeater(bool state);
 		bool battLow(void);
 
 		float getTemp(void);
 		float getHumi(void);
-		
+
 		uint16_t getRawTemp(void);
 		uint16_t getRawHumi(void);
-		
+
 		uint8_t getConfigReg(void);
 		uint16_t read2Byte(uint8_t reg);
 
 		uint8_t writeConfigData(uint8_t config);
-		
+
 	private:
   		uint8_t ownAddr;
 		uint8_t dataReadyPin;
@@ -201,11 +201,11 @@ class HDC100X{
 //---------------HDC------END-------------------------//
 
 //-----Helligkeitssensor 45315----//
-/*************************************************** 
+/***************************************************
   This is a library for the TSL45315 Lux sensor breakout board by Watterott
   These sensors use I2C to communicate, 2 pins are required to interface
 
-  Written by Adi Dax/Makerblog.at  
+  Written by Adi Dax/Makerblog.at
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
@@ -214,7 +214,7 @@ public:
 	TSL45315(uint8_t resolution);
 	TSL45315(void);
 	boolean begin(void);
-	uint32_t getLux(void);
+	int getLux(void);
 	boolean powerDown(void);
 
 
@@ -245,7 +245,7 @@ modification, are permitted provided that the following conditions are met:
 class VEML6070{
 public:
   boolean begin(void);
-  uint16_t getUV(void);
+  int getUV(void);
 
 
 private:
@@ -273,7 +273,7 @@ class RV8523
     void set24HourMode(void);
     void batterySwitchOver(int on);
 
-    
+
     //new funtions
     void begin(void);
     void setTime(const char* date, const char* time);
@@ -283,16 +283,16 @@ class RV8523
     uint8_t getHour(void);
     uint8_t getMin(void);
     uint8_t getSec(void);
-    
-    
+
+
   private:
     uint8_t bin2bcd(uint8_t val);
     uint8_t bcd2bin(uint8_t val);
 };
-    
-   
-   
- 
+
+
+
+
 
 
 /***************************************************************************
@@ -319,7 +319,7 @@ class BMP280
     BMP280(int8_t cspin);
     BMP280(int8_t cspin, int8_t mosipin, int8_t misopin, int8_t sckpin);
 
-   
+
     bool  begin(uint8_t addr = BMP280_ADDRESS, uint8_t addr_b = BMP280_ADDRESS_B, uint8_t chipid = BMP280_CHIPID);
     float getTemperature(void);
     float getPressure(void);
