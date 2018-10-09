@@ -1,5 +1,7 @@
 # SenseBox Library
 
+This is the library for the senseBox v1.0 based on an Arduino/Genuino UNO.
+
 Use Library for the following sensors:
 
 - HDC100X
